@@ -1,34 +1,101 @@
-import random
+import itertools
+import time
 
-# Compteur d'appels récursifs
-cpt = 0
+# Valeurs fixes pour le test
+cible = 813
+nombres = [6, 5, 10, 9, 8, 3]
 
-# Dictionnaire pour stocker les résultats intermédiaires
-memo = {}
+# ---------------------------- ANCIENNE VERSION ----------------------------
 
-def trouveExpr(v, valeurs, chemin=""):
-    global cpt
-    cpt += 1
+def ancienne_trouveExpr(v, valeurs):
+    """
+    Ancienne version basée sur la méthodologie d'origine, sans optimisation.
+    """
+    global nb_appels_ancienne, nb_redondances_ancienne
+    nb_appels_ancienne += 1
     
-    # Vérification si on a déjà calculé cette combinaison
     key = (v, tuple(sorted(valeurs)))  
-    if key in memo:
-        return memo[key]
+    if key in memo_ancienne:
+        nb_redondances_ancienne += 1
+        return memo_ancienne[key]
 
-    # Cas de base : un seul nombre restant
     if len(valeurs) == 1:
         if v == valeurs[0]:
-            return (True, str(v), f"{chemin} => {v}")
+            return (True, str(v))
         else:
-            return (False, "", chemin)
+            return (False, "")
 
-    # Si la cible est déjà présente dans la liste
     if v in valeurs:
-        return (True, str(v), f"{chemin} => {v}")
+        return (True, str(v))
 
-    # Test des opérations possibles
-    for i, x in enumerate(valeurs):
-        valeurs2 = valeurs[:i] + valeurs[i+1:]  # Liste des valeurs restantes
+    for x in valeurs:
+        valeurs2 = valeurs[:]
+        valeurs2.remove(x)
+
+        t, ch = ancienne_trouveExpr(v + x, valeurs2)
+        if t:
+            memo_ancienne[key] = (t, ch + " - " + str(x))
+            return memo_ancienne[key]
+
+        if v >= x:
+            t, ch = ancienne_trouveExpr(v - x, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " + (" + ch + ") ")
+                return memo_ancienne[key]
+
+        if v <= x:
+            t, ch = ancienne_trouveExpr(x - v, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " + (" + ch + ") ")
+                return memo_ancienne[key]
+
+        if v >= x and v % x == 0:
+            t, ch = ancienne_trouveExpr(v // x, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, "(" + ch + ") * " + str(x))
+                return memo_ancienne[key]
+
+        if v <= x and x % v == 0:
+            t, ch = ancienne_trouveExpr(x // v, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " / (" + ch + ") ")
+                return memo_ancienne[key]
+
+        t, ch = ancienne_trouveExpr(v * x, valeurs2)
+        if t:
+            memo_ancienne[key] = (t, "(" + ch + ") / " + str(x))
+            return memo_ancienne[key]
+
+    memo_ancienne[key] = (False, "")
+    return memo_ancienne[key]
+
+
+# ---------------------------- NOUVELLE VERSION ----------------------------
+
+def nouvelle_trouveExpr(v, valeurs):
+    """
+    Version ultra-optimisée avec pruning, programmation dynamique et priorisation des calculs.
+    """
+    global nb_appels_nouvelle, nb_redondances_nouvelle
+    nb_appels_nouvelle += 1
+    
+    key = (v, tuple(sorted(valeurs)))  
+    if key in memo_nouvelle:
+        nb_redondances_nouvelle += 1
+        return memo_nouvelle[key]
+
+    if len(valeurs) == 1:
+        return (True, str(v)) if v == valeurs[0] else (False, "")
+
+    if v in valeurs:
+        return (True, str(v))
+
+    # Trie les valeurs pour tester les plus grandes d'abord (plus efficace)
+    valeurs = sorted(valeurs, reverse=True)
+
+    # Génération optimisée des paires possibles
+    for x, y in itertools.combinations(valeurs, 2):
+        nouveaux_nombres = [n for n in valeurs if n != x and n != y]
 
         # Addition
         if (t := trouveExpr(v - x, valeurs2, chemin + f"({v - x} + {x})"))[0]:
@@ -56,11 +123,8 @@ def trouveExpr(v, valeurs, chemin=""):
 
 # Génération des valeurs pour le jeu
 NBNOMBRES = 6
-nombres = [6, 5, 10, 9, 8, 3]
-
-# random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
-cible = 813 
-# random.randint(100, 999)
+nombres = random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
+cible = random.randint(100, 999)
 
 # Résolution du problème
 res = trouveExpr(cible, nombres)
