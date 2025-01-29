@@ -97,44 +97,129 @@ def nouvelle_trouveExpr(v, valeurs):
     for x, y in itertools.combinations(valeurs, 2):
         nouveaux_nombres = [n for n in valeurs if n != x and n != y]
 
-        # Addition
-        if (t := trouveExpr(v - x, valeurs2, chemin + f"({v - x} + {x})"))[0]:
-            memo[key] = (t[0], f"({t[1]} + {x})", t[2])
-            return memo[key]
+        t, ch = ancienne_trouveExpr(v + x, valeurs2)
+        if t:
+            memo_ancienne[key] = (t, ch + " - " + str(x))
+            return memo_ancienne[key]
 
-        # Soustraction (uniquement si v >= x pour éviter les négatifs inutiles)
-        if v >= x and (t := trouveExpr(v + x, valeurs2, chemin + f"({x} - ({v - x}))"))[0]:
-            memo[key] = (t[0], f"({x} - {t[1]})", t[2])
-            return memo[key]
+        if v >= x:
+            t, ch = ancienne_trouveExpr(v - x, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " + (" + ch + ") ")
+                return memo_ancienne[key]
 
-        # Multiplication (uniquement si v est divisible par x)
-        if v % x == 0 and (t := trouveExpr(v // x, valeurs2, chemin + f"({v // x} * {x})"))[0]:
-            memo[key] = (t[0], f"({t[1]} * {x})", t[2])
-            return memo[key]
+        if v <= x:
+            t, ch = ancienne_trouveExpr(x - v, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " + (" + ch + ") ")
+                return memo_ancienne[key]
 
-        # Division (évite les divisions inutiles)
-        if x % v == 0 and (t := trouveExpr(x // v, valeurs2, chemin + f"({x} / ({x // v}))"))[0]:
-            memo[key] = (t[0], f"({x} / {t[1]})", t[2])
-            return memo[key]
+        if v >= x and v % x == 0:
+            t, ch = ancienne_trouveExpr(v // x, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, "(" + ch + ") * " + str(x))
+                return memo_ancienne[key]
 
-    # Aucun résultat trouvé, on stocke l'échec pour éviter de recalculer
-    memo[key] = (False, "", chemin)
-    return memo[key]
+        if v <= x and x % v == 0:
+            t, ch = ancienne_trouveExpr(x // v, valeurs2)
+            if t:
+                memo_ancienne[key] = (t, str(x) + " / (" + ch + ") ")
+                return memo_ancienne[key]
 
-# Génération des valeurs pour le jeu
-NBNOMBRES = 6
-nombres = random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
-cible = random.randint(100, 999)
+        t, ch = ancienne_trouveExpr(v * x, valeurs2)
+        if t:
+            memo_ancienne[key] = (t, "(" + ch + ") / " + str(x))
+            return memo_ancienne[key]
 
-# Résolution du problème
-res = trouveExpr(cible, nombres)
+    memo_ancienne[key] = (False, "")
+    return memo_ancienne[key]
 
-# Affichage des résultats détaillés
-print(f"\nCible : {cible}")
-print(f"Nombres disponibles : {nombres}")
-if res[0]:
-    print(f"Solution trouvée : {res[1]}")
-    print(f"Détail des calculs : {res[2]}")
-else:
-    print("Aucune solution exacte trouvée.")
-print(f"Nombre total d'appels récursifs : {cpt}")
+
+# ---------------------------- NOUVELLE VERSION ----------------------------
+
+def nouvelle_trouveExpr(v, valeurs):
+    """
+    Version ultra-optimisée avec pruning, programmation dynamique et priorisation des calculs.
+    """
+    global nb_appels_nouvelle, nb_redondances_nouvelle
+    nb_appels_nouvelle += 1
+    
+    key = (v, tuple(sorted(valeurs)))  
+    if key in memo_nouvelle:
+        nb_redondances_nouvelle += 1
+        return memo_nouvelle[key]
+
+    if len(valeurs) == 1:
+        return (True, str(v)) if v == valeurs[0] else (False, "")
+
+    if v in valeurs:
+        return (True, str(v))
+
+    # Trie les valeurs pour tester les plus grandes d'abord (plus efficace)
+    valeurs = sorted(valeurs, reverse=True)
+
+    # Génération optimisée des paires possibles
+    for x, y in itertools.combinations(valeurs, 2):
+        nouveaux_nombres = [n for n in valeurs if n != x and n != y]
+
+        operations = [
+            (x + y, f"({x} + {y})"),
+            (x - y, f"({x} - {y})") if x > y else None,
+            (y - x, f"({y} - {x})") if y > x else None,
+            (x * y, f"({x} * {y})"),
+            (x // y, f"({x} / {y})") if y != 0 and x % y == 0 else None,
+            (y // x, f"({y} / {x})") if x != 0 and y % x == 0 else None,
+        ]
+
+        operations = [op for op in operations if op is not None]
+
+        # Pruning : on teste d'abord les additions et multiplications avant divisions
+        for resultat, expression in operations:
+            if resultat < 0 or resultat > 1000:  # Évite les nombres inutiles
+                continue
+            tentative = nouvelle_trouveExpr(v, nouveaux_nombres + [resultat])
+            if tentative[0]:
+                memo_nouvelle[key] = (True, tentative[1].replace(str(resultat), expression, 1))
+                return memo_nouvelle[key]
+
+    memo_nouvelle[key] = (False, "")
+    return memo_nouvelle[key]
+
+
+# ---------------------------- TEST DES DEUX VERSIONS ----------------------------
+
+# Exécution de l'ancienne version
+nb_appels_ancienne, nb_redondances_ancienne = 0, 0
+memo_ancienne = {}
+start_time = time.time()
+res_ancienne = ancienne_trouveExpr(cible, nombres)
+time_ancienne = time.time() - start_time
+
+# Exécution de la nouvelle version
+nb_appels_nouvelle, nb_redondances_nouvelle = 0, 0
+memo_nouvelle = {}
+start_time = time.time()
+res_nouvelle = nouvelle_trouveExpr(cible, nombres)
+time_nouvelle = time.time() - start_time
+
+# ---------------------------- AFFICHAGE DES RÉSULTATS ----------------------------
+
+print("\nComparaison des deux versions :")
+print("--------------------------------------------------------")
+print(f"Cible : {cible}")
+print(f"Nombres disponibles : {nombres}\n")
+
+print("🔴 Ancienne version :")
+print(f"Solution trouvée : {res_ancienne[1]}")
+print(f"Nombre total d'appels récursifs : {nb_appels_ancienne}")
+print(f"Nombre de redondances constatées : {nb_redondances_ancienne}")
+print(f"Temps d'exécution : {time_ancienne:.5f} secondes")
+
+print("\n🟢 Nouvelle version :")
+print(f"Solution trouvée : {res_nouvelle[1]}")
+print(f"Nombre total d'appels récursifs : {nb_appels_nouvelle}")
+print(f"Nombre de redondances constatées : {nb_redondances_nouvelle}")
+print(f"Temps d'exécution : {time_nouvelle:.5f} secondes")
+
+print("\n--------------------------------------------------------")
+
