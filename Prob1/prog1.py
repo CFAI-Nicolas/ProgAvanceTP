@@ -93,9 +93,9 @@ def tester_resistance(nb_assiettes, seuils_tolerance, nb_morts, etudiants_morts)
     return True, nb_morts, etudiants_morts
 
 # Paramètres de l'expérience
-max_assiettes = 20  
-nb_etudiants = 300  
-max_morts = 2      
+max_assiettes = 100
+nb_etudiants = 2
+max_morts = 2
 
 # Exécution de la simulation
 seuil_mortel, liste_morts = determiner_seuil_mortel(max_assiettes, nb_etudiants, max_morts)

@@ -56,8 +56,11 @@ def trouveExpr(v, valeurs, chemin=""):
 
 # Génération des valeurs pour le jeu
 NBNOMBRES = 6
-nombres = random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
-cible = random.randint(100, 999)
+nombres = [6, 5, 10, 9, 8, 3]
+
+# random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
+cible = 813 
+# random.randint(100, 999)
 
 # Résolution du problème
 res = trouveExpr(cible, nombres)

@@ -2,7 +2,7 @@ import heapq
 from copy import deepcopy
 
 TROU = '0'  # Représente l'espace vide dans le Taquin
-Taquin_TXT = "taquin3.txt"
+Taquin_TXT = "taquin4-2.txt"
 def afficher_taquin(taquin):
     for ligne in taquin:
         print(' '.join(ligne))
