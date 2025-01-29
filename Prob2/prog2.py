@@ -2,7 +2,7 @@ import heapq
 from copy import deepcopy
 
 TROU = '0'  # Représente l'espace vide dans le Taquin
-
+Taquin_TXT = "taquin3.txt"
 def afficher_taquin(taquin):
     for ligne in taquin:
         print(' '.join(ligne))
@@ -88,7 +88,7 @@ def resoudre_taquin(taquin_initial, taquin_cible, taille):
     print("Pas de solution trouvée.")
 
 # Charger et résoudre le puzzle
-taquin_initial, taquin_cible, taille_taquin = charger_taquin("taquin4.txt")
+taquin_initial, taquin_cible, taille_taquin = charger_taquin(Taquin_TXT)
 
 print("État initial du Taquin :")
 afficher_taquin(taquin_initial)
