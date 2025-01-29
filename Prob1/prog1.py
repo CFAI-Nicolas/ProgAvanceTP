@@ -2,11 +2,6 @@ import math
 import random
 
 def determiner_seuil_mortel(max_assiettes, nb_etudiants, max_morts):
-    """
-    Détermine le seuil d'assiettes à partir duquel un repas devient mortel.
-    Chaque étudiant a une tolérance aléatoire entre 5 et 20 assiettes.
-    """
-
     # Génération aléatoire des seuils de tolérance pour chaque étudiant
     seuils_tolerance = [random.randint(5, 20) for _ in range(nb_etudiants)]
     nb_morts = 0
