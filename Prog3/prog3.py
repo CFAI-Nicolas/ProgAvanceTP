@@ -1,13 +1,12 @@
 import random
 
-cpt = 0  # Compteur d'appels récursifs
-memo = {}  # Dictionnaire pour stocker les résultats intermédiaires
+# Compteur d'appels récursifs
+cpt = 0
+
+# Dictionnaire pour stocker les résultats intermédiaires
+memo = {}
 
 def trouveExpr(v, valeurs, chemin=""):
-    """
-    Trouve une expression permettant d'obtenir v en utilisant les nombres de valeurs.
-    Retourne une solution détaillée avec toutes les étapes du calcul.
-    """
     global cpt
     cpt += 1
     
@@ -55,20 +54,20 @@ def trouveExpr(v, valeurs, chemin=""):
     memo[key] = (False, "", chemin)
     return memo[key]
 
-# ⚙️ Génération des valeurs pour le jeu
+# Génération des valeurs pour le jeu
 NBNOMBRES = 6
-nombres = random.sample([1,2,3,4,5,6,7,8,9,10,25,50,75,100], NBNOMBRES)
+nombres = random.sample([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 25, 50, 75, 100], NBNOMBRES)
 cible = random.randint(100, 999)
 
-# 🔍 Résolution du problème
+# Résolution du problème
 res = trouveExpr(cible, nombres)
 
-# 📌 Affichage des résultats détaillés
-print(f"\n🎯 Cible : {cible}")
-print(f"🔢 Nombres disponibles : {nombres}")
+# Affichage des résultats détaillés
+print(f"\nCible : {cible}")
+print(f"Nombres disponibles : {nombres}")
 if res[0]:
-    print(f"✅ Solution trouvée : {res[1]}")
-    print(f"📜 Détail des calculs : {res[2]}")
+    print(f"Solution trouvée : {res[1]}")
+    print(f"Détail des calculs : {res[2]}")
 else:
-    print("❌ Aucune solution exacte trouvée.")
-print(f"🔄 Nombre total d'appels récursifs : {cpt}")
+    print("Aucune solution exacte trouvée.")
+print(f"Nombre total d'appels récursifs : {cpt}")
